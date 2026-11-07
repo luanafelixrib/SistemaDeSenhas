@@ -16,6 +16,7 @@ class GerenciadorFilas:
     def __init__(self, cadastro: CadastroEspecialistas):
         self._filas: dict[Especialidade, FilaEspecialidade] = {}
         self._atendimentos: dict[int, Senha] = {}  # consultório -> senha em atendimento
+        self._ultimas_chamadas: dict[Especialidade, Senha] = {}  # para o painel
         self._cadastro = cadastro
         self._dia_encerrado = False
 
@@ -55,7 +56,12 @@ class GerenciadorFilas:
         senha.consultorio = consultorio
         senha.especialista = especialista
         self._atendimentos[consultorio] = senha
+        self._ultimas_chamadas[especialista.especialidade] = senha
         return senha
+
+    def ultima_chamada(self, especialidade: Especialidade) -> Senha | None:
+        """Última senha chamada na especialidade hoje, ou None se ninguém foi chamado."""
+        return self._ultimas_chamadas.get(especialidade)
 
     def finalizar_atendimento(self, consultorio: int) -> Senha:
         """Marca a senha do consultório como FINALIZADA."""
@@ -85,6 +91,7 @@ class GerenciadorFilas:
                 encerradas.append(senha)
 
         self._filas.clear()
+        self._ultimas_chamadas.clear()
         self._dia_encerrado = True
         return encerradas
 
@@ -95,9 +102,8 @@ class GerenciadorFilas:
         self._dia_encerrado = False
 
     def tempo_espera_estimado(self, especialidade: Especialidade) -> int | None:
-        """RN05. Minutos estimados, ou None se não há consultório ativo."""
-        self._verificar_dia_aberto()
-        if not self._cadastro.tem_especialista(especialidade):
+        """RN05. Minutos estimados, ou None se não há consultório ativo ou o dia está encerrado."""
+        if self._dia_encerrado or not self._cadastro.tem_especialista(especialidade):
             return None
         fila = self._filas.get(especialidade)
         tamanho_fila = fila.tamanho() if fila else 0
