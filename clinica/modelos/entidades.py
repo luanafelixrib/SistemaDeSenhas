@@ -27,3 +27,9 @@ class Senha:
     hora_finalizacao: Optional[datetime] = None
     consultorio: Optional[int] = None
     especialista: Optional[Especialista] = None
+
+    @property
+    def codigo(self) -> str:
+        """Código exibido ao paciente: N (normal) ou P (prioritária) + número com 3 dígitos."""
+        letra = "N" if self.prioridade == Prioridade.NORMAL else "P"
+        return f"{letra}{self.numero:03d}"

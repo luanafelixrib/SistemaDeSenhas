@@ -2,7 +2,7 @@
 
 Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto está sendo desenvolvido passo a passo pelos integrantes do grupo, com foco em modularização e no uso de estruturas de dados.
 
-> **Estado atual:** os modelos, o cadastro de especialistas (com autenticação do administrador) e as filas por especialidade estão implementados. As filas separam senhas prioritárias e normais, permitem consultar a ordem de chamada e oferecem estimativas de espera. O painel, a persistência, o relatório, a interface gráfica e a integração do fluxo pelo `main.py` ainda estão em desenvolvimento.
+> **Estado atual:** os modelos, o cadastro de especialistas (com autenticação do administrador) e as filas por especialidade estão implementados. As filas separam senhas prioritárias e normais, permitem consultar a ordem de chamada e oferecem estimativas de espera. O painel já devolve os dados de chamada e de espera por especialidade. A persistência, o relatório, a interface gráfica e a integração do fluxo pelo `main.py` ainda estão em desenvolvimento.
 
 ## Objetivos
 
@@ -61,7 +61,7 @@ Clinica-SistemaSenhaPrioridade/
 | `clinica/modelos/` | Especialidades, prioridades, estados, senhas e especialistas | Implementado |
 | `clinica/especialistas/` | Cadastro de especialistas e autenticação do administrador | Implementado |
 | `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado; a prioridade estrita depende da professora |
-| `clinica/painel/` | Preparação das informações para exibição | Planejado |
+| `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
 | `clinica/relatorio/` | Persistência em SQLite e geração do relatório diário | Planejado |
 | `clinica/interface/` | Interface gráfica em Tkinter | Planejado, etapa posterior |
 | `main.py` | Integração do fluxo da aplicação | Planejado |
@@ -83,6 +83,8 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 ## Como executar
 
 O fluxo completo da aplicação ainda não está pronto. As instruções de execução serão adicionadas quando a integração pelo `main.py` estiver concluída.
+
+Os testes automatizados rodam na raiz do projeto com `python -m unittest discover`.
 
 ## Grupo
 
