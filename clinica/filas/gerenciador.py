@@ -1,5 +1,6 @@
 """Gerenciador das filas: emissão, chamada, encerramento do dia e estimativa de espera."""
 import math
+from collections.abc import Callable
 from datetime import datetime
 
 from clinica.especialistas import CadastroEspecialistas
@@ -13,7 +14,11 @@ TEMPO_ATENDIMENTO_MIN = 30   # RN02
 class GerenciadorFilas:
     """Uma fila por especialidade, mais as regras que dependem do cadastro."""
 
-    def __init__(self, cadastro: CadastroEspecialistas):
+    def __init__(self, cadastro: CadastroEspecialistas,
+                 ao_mudar: Callable[[Senha], None] | None = None):
+        """`ao_mudar` (opcional) é chamada sempre que uma senha muda de estado
+        (emitida, chamada, finalizada, não atendida); o `main.py` usa para gravar no SQLite."""
+        self._ao_mudar = ao_mudar
         self._filas: dict[Especialidade, FilaEspecialidade] = {}
         self._atendimentos: dict[int, Senha] = {}  # consultório -> senha em atendimento
         self._ultimas_chamadas: dict[Especialidade, Senha] = {}  # para o painel
@@ -25,6 +30,11 @@ class GerenciadorFilas:
         if self._dia_encerrado:
             raise ValueError("O dia foi encerrado; inicie um novo dia antes de continuar.")
 
+    def _notificar(self, senha: Senha) -> None:
+        """Avisa quem está ouvindo (se houver) que a senha mudou."""
+        if self._ao_mudar is not None:
+            self._ao_mudar(senha)
+
     def emitir_senha(self, especialidade: Especialidade,
                      prioridade: Prioridade = Prioridade.NORMAL) -> Senha:
         """RN06: ValueError se a especialidade não tem especialista."""
@@ -33,7 +43,9 @@ class GerenciadorFilas:
             raise ValueError(f"Não há especialista cadastrado para {especialidade.value}.")
         if especialidade not in self._filas:
             self._filas[especialidade] = FilaEspecialidade(especialidade)
-        return self._filas[especialidade].emitir(prioridade)
+        senha = self._filas[especialidade].emitir(prioridade)
+        self._notificar(senha)
+        return senha
 
     def chamar_proxima(self, consultorio: int) -> Senha | None:
         """RF08. Marca EM_ATENDIMENTO, preenche hora_chamada, consultório e especialista.
@@ -57,19 +69,27 @@ class GerenciadorFilas:
         senha.especialista = especialista
         self._atendimentos[consultorio] = senha
         self._ultimas_chamadas[especialista.especialidade] = senha
+        self._notificar(senha)
         return senha
 
     def ultima_chamada(self, especialidade: Especialidade) -> Senha | None:
         """Última senha chamada na especialidade hoje, ou None se ninguém foi chamado."""
         return self._ultimas_chamadas.get(especialidade)
 
-    def finalizar_atendimento(self, consultorio: int) -> Senha:
-        """Marca a senha do consultório como FINALIZADA."""
+    def finalizar_atendimento(self, consultorio: int, automatico: bool = False) -> Senha:
+        """Marca a senha do consultório como FINALIZADA e registra a hora.
+
+        `automatico=True` é usado pelo encerramento do dia: o atendimento conta como
+        atendido, mas fica sem hora_finalizacao, porque o horário real é desconhecido
+        e distorceria o tempo médio de atendimento do relatório.
+        """
         if consultorio not in self._atendimentos:
             raise ValueError(f"Consultório {consultorio} não tem atendimento em andamento.")
         senha = self._atendimentos.pop(consultorio)
         senha.status = StatusSenha.FINALIZADA
-        senha.hora_finalizacao = datetime.now()
+        if not automatico:
+            senha.hora_finalizacao = datetime.now()
+        self._notificar(senha)
         return senha
 
     def encerrar_dia(self) -> list[Senha]:
@@ -84,11 +104,12 @@ class GerenciadorFilas:
 
         encerradas = []
         for consultorio in list(self._atendimentos):  # list(...): o dict muda dentro do for
-            encerradas.append(self.finalizar_atendimento(consultorio))
+            encerradas.append(self.finalizar_atendimento(consultorio, automatico=True))
 
         for fila in self._filas.values():
             for senha in fila.encerrar():
                 senha.status = StatusSenha.NAO_ATENDIDA
+                self._notificar(senha)
                 encerradas.append(senha)
 
         self._filas.clear()

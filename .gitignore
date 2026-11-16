@@ -1,2 +1,7 @@
 __pycache__/
 *.py[cod]
+
+# Dados gerados pelo sistema (banco SQLite e relatórios do dia)
+dados/
+relatorios/
+*.db

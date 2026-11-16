@@ -2,7 +2,7 @@
 
 Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto está sendo desenvolvido passo a passo pelos integrantes do grupo, com foco em modularização e no uso de estruturas de dados.
 
-> **Estado atual:** os modelos, o cadastro de especialistas (com autenticação do administrador) e as filas por especialidade estão implementados. As filas separam senhas prioritárias e normais, permitem consultar a ordem de chamada e oferecem estimativas de espera. O painel já devolve os dados de chamada e de espera por especialidade. A persistência, o relatório, a interface gráfica e a integração do fluxo pelo `main.py` ainda estão em desenvolvimento.
+> **Estado atual:** os modelos, o cadastro de especialistas (com autenticação do administrador) e as filas por especialidade estão implementados. As filas separam senhas prioritárias e normais, permitem consultar a ordem de chamada e oferecem estimativas de espera. O painel já devolve os dados de chamada e de espera por especialidade. O SQLite (senhas do dia, especialistas e administrador) e o relatório diário em `.txt` também estão implementados. A interface gráfica e a integração do fluxo pelo `main.py` ainda estão em desenvolvimento.
 
 ## Objetivos
 
@@ -51,7 +51,7 @@ Clinica-SistemaSenhaPrioridade/
 │   ├── especialistas/    cadastro.py, administrador.py
 │   ├── filas/            fila_especialidade.py, gerenciador.py
 │   ├── painel/           painel.py
-│   ├── relatorio/        relatorio.py
+│   ├── relatorio/        repositorio.py, relatorio.py
 │   └── interface/        interface gráfica (etapa posterior)
 └── testes/
 ```
@@ -62,7 +62,7 @@ Clinica-SistemaSenhaPrioridade/
 | `clinica/especialistas/` | Cadastro de especialistas e autenticação do administrador | Implementado |
 | `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado; a prioridade estrita depende da professora |
 | `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
-| `clinica/relatorio/` | Persistência em SQLite e geração do relatório diário | Planejado |
+| `clinica/relatorio/` | Gravação das senhas, do cadastro e do administrador no SQLite (`Repositorio`) e relatório diário em texto (`Relatorio`), salvo em `relatorios/relatorio_AAAA-MM-DD.txt` | Implementado |
 | `clinica/interface/` | Interface gráfica em Tkinter | Planejado, etapa posterior |
 | `main.py` | Integração do fluxo da aplicação | Planejado |
 

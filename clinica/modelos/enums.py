@@ -26,6 +26,22 @@ class Prioridade(Enum):
     CRIANCA_COLO = 6
     NORMAL = 7
 
+    @property
+    def descricao(self) -> str:
+        """Nome para exibir em menus e no relatório."""
+        return _DESCRICOES[self]
+
+
+_DESCRICOES = {
+    Prioridade.IDOSO_80: "Idosos 80+",
+    Prioridade.IDOSO_60: "Idosos de 60 a 79 anos",
+    Prioridade.PCD: "PCD",
+    Prioridade.GESTANTE: "Gestantes",
+    Prioridade.OBESO: "Obesos",
+    Prioridade.CRIANCA_COLO: "Crianças no colo",
+    Prioridade.NORMAL: "Normal",
+}
+
 
 class StatusSenha(Enum):
     """Status de uma senha."""

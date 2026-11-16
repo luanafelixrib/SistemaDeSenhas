@@ -29,6 +29,19 @@ class Administrador:
         # Guardamos só o hash. A senha em si nunca é salva em nenhum atributo (RNF06).
         self._hash = _gerar_hash(senha, self._salt)
 
+    @classmethod
+    def restaurar(cls, usuario: str, salt: bytes, hash_senha: bytes) -> "Administrador":
+        """Recria a conta a partir do que foi guardado no banco (sem a senha original)."""
+        admin = cls.__new__(cls)  # pula o __init__, que exigiria a senha em texto
+        admin.usuario = usuario
+        admin._salt = salt
+        admin._hash = hash_senha
+        return admin
+
+    def dados_para_guardar(self) -> tuple[str, bytes, bytes]:
+        """(usuario, salt, hash): o que pode ir para o banco. A senha nunca vai (RNF06)."""
+        return self.usuario, self._salt, self._hash
+
     def autenticar(self, usuario: str, senha: str) -> bool:
         """RF09. Devolve True só se usuário e senha conferem."""
         usuario_ok = usuario.strip() == self.usuario
