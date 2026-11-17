@@ -25,6 +25,11 @@ class GerenciadorFilas:
         self._cadastro = cadastro
         self._dia_encerrado = False
 
+    @property
+    def dia_encerrado(self) -> bool:
+        """True depois de `encerrar_dia()` e antes de `iniciar_novo_dia()`."""
+        return self._dia_encerrado
+
     def _verificar_dia_aberto(self) -> None:
         """Impede operações de fila depois do encerramento diário."""
         if self._dia_encerrado:
@@ -122,6 +127,29 @@ class GerenciadorFilas:
         if not self._dia_encerrado:
             raise ValueError("Encerre o dia atual antes de iniciar outro.")
         self._dia_encerrado = False
+
+    def restaurar_dia(self, senhas: list[Senha]) -> None:
+        """Recoloca nas filas as senhas de hoje gravadas por uma execução anterior (RNF05).
+
+        Quem ainda aguardava volta para a fila, quem estava em atendimento volta para o
+        consultório e a numeração continua de onde parou. Não chama `ao_mudar`: nada mudou,
+        os dados só voltaram do banco.
+        """
+        for senha in sorted(senhas, key=lambda s: s.numero):   # a ordem de chegada é o desempate
+            if senha.especialidade not in self._filas:
+                self._filas[senha.especialidade] = FilaEspecialidade(senha.especialidade)
+            self._filas[senha.especialidade].restaurar(senha)
+            if senha.status == StatusSenha.EM_ATENDIMENTO:
+                self._atendimentos[senha.consultorio] = senha
+            if senha.hora_chamada is not None:     # para o painel mostrar a última chamada
+                atual = self._ultimas_chamadas.get(senha.especialidade)
+                if atual is None or senha.hora_chamada > atual.hora_chamada:
+                    self._ultimas_chamadas[senha.especialidade] = senha
+
+    def pessoas_a_frente(self, especialidade: Especialidade, numero: int) -> int | None:
+        """Quantas senhas serão chamadas antes desta; None se ela não está aguardando."""
+        fila = self._filas.get(especialidade)
+        return fila.posicao(numero) if fila else None
 
     def _minutos_para(self, especialidade: Especialidade, pessoas_na_frente: int) -> int:
         """Minutos até a vez de quem tem essa quantidade de pessoas na frente (RN05).

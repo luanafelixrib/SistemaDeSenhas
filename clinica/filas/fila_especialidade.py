@@ -1,7 +1,7 @@
 """Fila de uma única especialidade: heap de prioridade, fila FIFO e numeração das senhas."""
 import heapq
 from collections import deque   # fila FIFO: entra no fim, sai do começo
-from clinica.modelos import Especialidade, Prioridade, Senha
+from clinica.modelos import Especialidade, Prioridade, Senha, StatusSenha
 
 
 class FilaEspecialidade:
@@ -35,6 +35,20 @@ class FilaEspecialidade:
             # Guardamos a tupla, não só a senha, para o heap saber ordenar.
             heapq.heappush(self._heap, (prioridade.value, senha.numero, senha))
         return senha
+
+    def restaurar(self, senha: Senha) -> None:
+        """Recoloca uma senha gravada por uma execução anterior, sem criar número novo.
+
+        O contador sempre fica à frente dos números já usados (RN08), e só entra na fila
+        quem ainda está aguardando.
+        """
+        self._contador = max(self._contador, senha.numero)
+        if senha.status != StatusSenha.AGUARDANDO:
+            return
+        if senha.prioridade == Prioridade.NORMAL:
+            self._normais.append(senha)
+        else:
+            heapq.heappush(self._heap, (senha.prioridade.value, senha.numero, senha))
 
     def proxima(self) -> Senha | None:
         """Tira a próxima senha: prioritárias primeiro, depois as normais; None se vazia."""

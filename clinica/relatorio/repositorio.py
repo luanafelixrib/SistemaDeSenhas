@@ -115,6 +115,13 @@ class Repositorio:
             ))
         return senhas
 
+    def dias_com_senhas(self) -> list[date]:
+        """Dias que têm pelo menos uma senha gravada, do mais antigo ao mais recente."""
+        linhas = self._conexao.execute(
+            "SELECT DISTINCT substr(hora_geracao, 1, 10) FROM senhas ORDER BY 1"
+        ).fetchall()
+        return [date.fromisoformat(texto) for (texto,) in linhas]
+
     # --- Especialistas ----------------------------------------------------------
 
     def salvar_especialista(self, especialista: Especialista) -> None:

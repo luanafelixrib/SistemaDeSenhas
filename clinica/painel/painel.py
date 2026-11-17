@@ -46,12 +46,12 @@ class Painel:
             consultorio = str(linha.consultorio) if linha.consultorio else "-"
             linhas.append(
                 f"{linha.especialidade.value:<15} {senha:<7} {consultorio:<12} "
-                f"{_formatar_espera(linha.espera_estimada_min)}"
+                f"{formatar_espera(linha.espera_estimada_min)}"
             )
         return "\n".join(linhas)
 
 
-def _formatar_espera(minutos: int | None) -> str:
+def formatar_espera(minutos: int | None) -> str:
     """Texto da espera. É uma estimativa, sem garantia de tempo (RN05)."""
     if minutos is None:
         return "indisponível"

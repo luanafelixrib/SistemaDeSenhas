@@ -2,7 +2,7 @@
 
 Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto está sendo desenvolvido passo a passo pelos integrantes do grupo, com foco em modularização e no uso de estruturas de dados.
 
-> **Estado atual:** os modelos, o cadastro de especialistas (com autenticação do administrador) e as filas por especialidade estão implementados. As filas separam senhas prioritárias e normais, permitem consultar a ordem de chamada e oferecem estimativas de espera. O painel já devolve os dados de chamada e de espera por especialidade. O SQLite (senhas do dia, especialistas e administrador) e o relatório diário em `.txt` também estão implementados. A interface gráfica e a integração do fluxo pelo `main.py` ainda estão em desenvolvimento.
+> **Estado atual:** o back-end está completo e funciona no terminal. Os modelos, o cadastro de especialistas (com autenticação do administrador), as filas por especialidade, o painel, o SQLite e o relatório diário em `.txt` estão implementados e testados, e o `main.py` integra tudo em um menu de terminal. Ao reabrir o programa no meio do dia, as filas voltam do banco. A interface gráfica (Tkinter) ainda não foi iniciada.
 
 ## Objetivos
 
@@ -47,12 +47,13 @@ O código fica no pacote `clinica/`, com uma pasta por módulo do enunciado. Cad
 Clinica-SistemaSenhaPrioridade/
 ├── main.py
 ├── clinica/
+│   ├── sistema.py        integra cadastro, filas, painel, banco e relatório
 │   ├── modelos/          enums.py, entidades.py
 │   ├── especialistas/    cadastro.py, administrador.py
 │   ├── filas/            fila_especialidade.py, gerenciador.py
 │   ├── painel/           painel.py
 │   ├── relatorio/        repositorio.py, relatorio.py
-│   └── interface/        interface gráfica (etapa posterior)
+│   └── interface/        terminal.py (interface gráfica em etapa posterior)
 └── testes/
 ```
 
@@ -63,8 +64,9 @@ Clinica-SistemaSenhaPrioridade/
 | `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado; a prioridade estrita depende da professora |
 | `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
 | `clinica/relatorio/` | Gravação das senhas, do cadastro e do administrador no SQLite (`Repositorio`) e relatório diário em texto (`Relatorio`), salvo em `relatorios/relatorio_AAAA-MM-DD.txt` | Implementado |
-| `clinica/interface/` | Interface gráfica em Tkinter | Planejado, etapa posterior |
-| `main.py` | Integração do fluxo da aplicação | Planejado |
+| `clinica/sistema.py` | Porta de entrada única: abre o dia, restaura as filas do banco, controla o acesso do administrador, grava no SQLite e gera o relatório | Implementado |
+| `clinica/interface/` | Terminal (`terminal.py`) implementado; interface gráfica em Tkinter | Terminal implementado; Tkinter planejado, etapa posterior |
+| `main.py` | Ponto de entrada: cria o `Sistema` e abre o terminal | Implementado |
 
 Os módulos são importados a partir da raiz do projeto, por exemplo `from clinica.filas import GerenciadorFilas`. Os comandos devem ser executados na pasta raiz.
 
@@ -82,7 +84,15 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 
 ## Como executar
 
-O fluxo completo da aplicação ainda não está pronto. As instruções de execução serão adicionadas quando a integração pelo `main.py` estiver concluída.
+Na pasta raiz do projeto:
+
+```
+python main.py
+```
+
+O menu do terminal tem quatro áreas: retirar senha, painel de atendimento, área do especialista (chamar próxima senha e finalizar atendimento, escolhendo o consultório) e área do administrador. No primeiro acesso, o sistema pede para criar a conta do administrador; depois disso, o administrador cadastra os especialistas (no máximo três por especialidade), consulta o relatório e encerra o dia. Cadastro, relatório e encerramento exigem login de administrador.
+
+O banco SQLite fica em `dados/clinica.db` e os relatórios em `relatorios/relatorio_AAAA-MM-DD.txt`; as duas pastas são criadas automaticamente e ficam fora do Git. Se o programa for fechado no meio do dia, as senhas voltam do banco ao reabrir. Se o dia anterior não foi encerrado, ele é fechado e o relatório é gerado ao iniciar; se a data mudar com o programa aberto, o dia anterior é encerrado e o novo começa sozinho.
 
 Os testes automatizados rodam na raiz do projeto com `python -m unittest discover`.
 
