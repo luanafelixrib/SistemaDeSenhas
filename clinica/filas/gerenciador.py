@@ -81,6 +81,10 @@ class GerenciadorFilas:
         """Última senha chamada na especialidade hoje, ou None se ninguém foi chamado."""
         return self._ultimas_chamadas.get(especialidade)
 
+    def atendimento_em(self, consultorio: int) -> Senha | None:
+        """Senha em atendimento agora nesse consultório, ou None se ele está livre."""
+        return self._atendimentos.get(consultorio)
+
     def finalizar_atendimento(self, consultorio: int, automatico: bool = False) -> Senha:
         """Marca a senha do consultório como FINALIZADA e registra a hora.
 
