@@ -97,6 +97,18 @@ O banco SQLite fica em `dados/clinica.db` e os relatórios em `relatorios/relato
 
 Os testes automatizados rodam na raiz do projeto com `python -m unittest discover`. Os testes da janela precisam de Tkinter e de tela; sem isso, são pulados.
 
+### Dados de exemplo
+
+Para a apresentação, o banco começa vazio e cadastrar 12 especialistas à mão toda vez seria demorado. Este comando já deixa tudo pronto (12 especialistas, 3 por especialidade, nos consultórios 1 a 12, e um administrador):
+
+```
+python -m clinica.dados_exemplo
+```
+
+Pode ser executado mais de uma vez sem duplicar nada: consultórios que já têm especialista são pulados. Se já existir um administrador com outra senha, o script para com erro e não cadastra ninguém.
+
+O usuário `admin` e a senha `admin123` servem **apenas para a demonstração**. Depois de popular, abra `python main.py` e entre na aba Administrador com esses dados.
+
 ## Grupo
 
 - Willyan
