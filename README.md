@@ -115,4 +115,4 @@ O usuário `admin` e a senha `admin123` servem **apenas para a demonstração**.
 - Luana Felix Ribeiro
 - Iago de Castro Sarmento
 - Bruna Stéfany
-
+- Levi Oliveira Reis
