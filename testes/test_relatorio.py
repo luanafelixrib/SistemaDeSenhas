@@ -2,10 +2,13 @@
 
 Rodar na raiz do projeto: python -m unittest discover
 """
+import csv
 import tempfile
 import unittest
 from datetime import date, datetime
 from pathlib import Path
+from xml.etree import ElementTree
+from zipfile import ZipFile
 
 from clinica.especialistas import CadastroEspecialistas
 from clinica.filas import GerenciadorFilas
@@ -123,6 +126,41 @@ class TestArquivo(unittest.TestCase):
             conteudo = caminho.read_text(encoding="utf-8")
         self.assertIn("RELATÓRIO DE ATENDIMENTO", conteudo)
         self.assertEqual(conteudo, relatorio.gerar_texto(DIA))
+
+    def test_salva_csv_com_dados_das_senhas(self):
+        relatorio = Relatorio(repositorio_com(senhas_do_dia()))
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = relatorio.salvar_csv(DIA, pasta)
+            with caminho.open(encoding="utf-8-sig", newline="") as arquivo:
+                linhas = list(csv.reader(arquivo))
+
+        self.assertEqual(caminho.name, "relatorio_2026-11-16.csv")
+        self.assertEqual(linhas[0], [
+            "Senha", "Especialidade", "Prioridade", "Status", "Gerada em",
+            "Chamada em", "Finalizada em", "Consultório", "Especialista",
+        ])
+        self.assertEqual(linhas[1][:4], ["N001", "Cardiologia", "Normal", "Finalizada"])
+        self.assertEqual(linhas[1][8], "Dra. Ana")
+        self.assertEqual(len(linhas), 5)
+
+    def test_salva_excel_com_dados_das_senhas(self):
+        relatorio = Relatorio(repositorio_com(senhas_do_dia()))
+        with tempfile.TemporaryDirectory() as pasta:
+            caminho = relatorio.salvar_excel(DIA, pasta)
+            with ZipFile(caminho) as arquivo:
+                planilha = ElementTree.fromstring(arquivo.read("xl/worksheets/sheet1.xml"))
+        ns = {"s": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+        valores = [texto.text for texto in planilha.findall(".//s:t", ns)]
+
+        self.assertEqual(caminho.name, "relatorio_2026-11-16.xlsx")
+        self.assertEqual(valores[:9], [
+            "Senha", "Especialidade", "Prioridade", "Status", "Gerada em",
+            "Chamada em", "Finalizada em", "Consultório", "Especialista",
+        ])
+        self.assertIn("N001", valores)
+        self.assertIn("Gestantes", valores)
+        self.assertIn("Dra. Ana", valores)
+        self.assertEqual(len(valores), 9 * 5)
 
 
 class TestGravacaoAutomatica(unittest.TestCase):

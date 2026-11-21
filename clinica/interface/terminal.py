@@ -5,6 +5,7 @@ menus sem digitar nada de verdade.
 """
 import getpass
 from collections.abc import Callable
+from datetime import date
 
 from clinica.especialistas.cadastro import CONSULTORIOS
 from clinica.modelos import Especialidade, Prioridade
@@ -168,14 +169,16 @@ class Terminal:
                 self._saida("\n--- Área do administrador ---")
                 opcao = self._menu(["Cadastrar especialista", "Listar especialistas",
                                     "Ver relatório do dia", "Encerrar o dia e gerar relatório",
-                                    "Iniciar novo dia"], sair="Sair da área")
+                                    "Iniciar novo dia", "Consultar relatório por data"],
+                                   sair="Sair da área")
                 if opcao == 0:
                     return
                 {1: self._cadastrar_especialista,
                  2: self._listar_especialistas,
                  3: self._ver_relatorio,
                  4: self._encerrar_dia,
-                 5: self._iniciar_novo_dia}[opcao]()
+                 5: self._iniciar_novo_dia,
+                 6: self._consultar_relatorio_por_data}[opcao]()
         finally:
             self._sistema.sair_do_admin()
 
@@ -231,6 +234,27 @@ class Terminal:
 
     def _ver_relatorio(self) -> None:
         self._saida("\n" + self._sistema.relatorio_do_dia())
+
+    def _consultar_relatorio_por_data(self) -> None:
+        while True:
+            texto = self._entrada("Data do relatório (AAAA-MM-DD): ").strip()
+            try:
+                dia = date.fromisoformat(texto)
+                break
+            except ValueError:
+                self._saida("Data inválida. Use o formato AAAA-MM-DD.")
+
+        self._saida("\n" + self._sistema.relatorio_do_dia(dia))
+        formato = self._menu(["Exportar CSV", "Exportar Excel", "Não exportar"])
+        if formato == 0 or formato == 3:
+            return
+        try:
+            caminho = (self._sistema.exportar_relatorio_csv(dia) if formato == 1
+                       else self._sistema.exportar_relatorio_excel(dia))
+        except OSError as erro:
+            self._saida(f"Não foi possível exportar o relatório: {erro}")
+            return
+        self._saida(f"Relatório exportado para {caminho}.")
 
     def _encerrar_dia(self) -> None:
         self._saida("Encerrar o dia marca como não atendidas as senhas que ainda aguardam.")
