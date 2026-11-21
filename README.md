@@ -26,7 +26,7 @@ As especialidades disponíveis no modelo atual são Clínica Geral, Pediatria, G
 | 6 | Crianças no colo |
 | 7 | Senha normal |
 
-Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 e a regra de prioridade estrita ainda precisam ser confirmados com a professora. O código 7 representa a senha normal no enum. As senhas normais não entram no heap: ficam em uma fila FIFO (`deque`) e só são chamadas quando não há senha prioritária aguardando.
+Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 (idosos de 60 a 79 anos) e a regra de prioridade estrita foram definidos pelo grupo e já estão implementados no código. O código 7 representa a senha normal no enum. As senhas normais não entram no heap: ficam em uma fila FIFO (`deque`) e só são chamadas quando não há senha prioritária aguardando.
 
 ## Tecnologias previstas
 
@@ -61,7 +61,7 @@ Clinica-SistemaSenhaPrioridade/
 | --- | --- | --- |
 | `clinica/modelos/` | Especialidades, prioridades, estados, senhas e especialistas | Implementado |
 | `clinica/especialistas/` | Cadastro de especialistas e autenticação do administrador | Implementado |
-| `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado; a prioridade estrita depende da professora |
+| `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado |
 | `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
 | `clinica/relatorio/` | Gravação das senhas, do cadastro e do administrador no SQLite (`Repositorio`) e relatório diário em texto (`Relatorio`), salvo em `relatorios/relatorio_AAAA-MM-DD.txt` | Implementado |
 | `clinica/sistema.py` | Porta de entrada única: abre o dia, restaura as filas do banco, controla o acesso do administrador, grava no SQLite e gera o relatório | Implementado |
@@ -77,7 +77,7 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 - O tempo médio de atendimento usado na estimativa é de 30 minutos.
 - A senha é diária: senhas não atendidas até o encerramento não passam para o dia seguinte.
 - A clínica não realiza atendimentos de emergência.
-- A prioridade estrita foi escolhida pelo grupo, mas ainda depende de confirmação da professora.
+- A prioridade estrita foi definida pelo grupo: senhas prioritárias são chamadas antes das normais; entre prioritárias, vale o menor código e, no empate, a ordem de chegada.
 - A estimativa geral de espera considera o total de senhas aguardando, o tempo médio de atendimento de 30 minutos e a quantidade de consultórios ativos da especialidade.
 - A estimativa por senha usa a mesma conta da estimativa geral: quantidade de pessoas à frente multiplicada por 30 minutos e dividida pelos consultórios ativos da especialidade, arredondada para cima. Por ser uma média, deve ser exibida como estimativa, sem garantia de tempo.
 - Alguns detalhes do encerramento diário também continuam como propostas a validar.
