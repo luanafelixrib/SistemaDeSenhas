@@ -4,10 +4,12 @@ Rodar na raiz do projeto: python -m unittest discover
 """
 import tempfile
 import unittest
+from datetime import date
+
 from pathlib import Path
 
 from clinica.interface.terminal import Terminal
-from clinica.modelos import Especialidade
+from clinica.modelos import Especialidade, Prioridade, Senha, StatusSenha
 from clinica.relatorio import Repositorio
 from clinica.sistema import Sistema
 
@@ -159,6 +161,39 @@ class TestAdministrador(BaseTerminal):
         respostas = ["4", "admin", "5", "0", "0"]
         saida = self.rodar(respostas, senhas=["segredo", "segredo"])
         self.assertIn("Erro: Encerre o dia atual antes de iniciar outro.", saida)
+
+    def test_consulta_relatorio_de_data_com_dados(self):
+        dia = date.today()
+        self.repo.salvar_senha(Senha(
+            1, Especialidade.CARDIOLOGIA, Prioridade.NORMAL, StatusSenha.AGUARDANDO,
+        ))
+        sistema = Sistema(self.repo, self.pasta)
+        sistema.criar_administrador("admin", "segredo")
+        sistema.sair_do_admin()
+
+        saida = self.rodar(
+            ["4", "admin", "6", dia.isoformat(), "3", "0", "0"],
+            senhas=["segredo"],
+            sistema=sistema,
+        )
+
+        self.assertIn(f"RELATÓRIO DE ATENDIMENTO - {dia:%d/%m/%Y}", saida)
+        self.assertIn("Senhas emitidas.................. 1", saida)
+
+    def test_consulta_relatorio_de_data_sem_dados(self):
+        dia = date.today()
+        sistema = Sistema(self.repo, self.pasta)
+        sistema.criar_administrador("admin", "segredo")
+        sistema.sair_do_admin()
+
+        saida = self.rodar(
+            ["4", "admin", "6", dia.isoformat(), "3", "0", "0"],
+            senhas=["segredo"],
+            sistema=sistema,
+        )
+
+        self.assertIn(f"RELATÓRIO DE ATENDIMENTO - {dia:%d/%m/%Y}", saida)
+        self.assertIn("Nenhuma senha foi emitida neste dia.", saida)
 
 
 if __name__ == "__main__":
