@@ -4,6 +4,7 @@ Rodar na raiz do projeto: python -m unittest discover
 """
 import tempfile
 import unittest
+import zipfile
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
@@ -124,6 +125,43 @@ class TestGravacao(BaseSistema):
         sistema = self.sistema_com_admin_e_especialista()
         sistema.emitir_senha(CARDIO)
         self.assertIn("Em aberto", sistema.relatorio_do_dia())
+
+
+class TestExportacao(BaseSistema):
+    def sistema_com_uma_senha_atendida(self) -> Sistema:
+        sistema = self.sistema_com_admin_e_especialista()
+        sistema.emitir_senha(CARDIO)
+        sistema.chamar_proxima(1)
+        sistema.finalizar_atendimento(1)
+        return sistema
+
+    def test_exportar_csv_cria_o_arquivo_na_pasta_dos_relatorios(self):
+        sistema = self.sistema_com_uma_senha_atendida()
+        caminho = sistema.exportar_relatorio_csv(self.dia[0])
+        self.assertEqual(caminho, self.pasta / f"relatorio_{self.dia[0].isoformat()}.csv")
+        conteudo = caminho.read_text(encoding="utf-8-sig")
+        self.assertIn("N001", conteudo)
+        self.assertIn("Dra. Ana", conteudo)
+
+    def test_exportar_excel_cria_o_arquivo_na_pasta_dos_relatorios(self):
+        sistema = self.sistema_com_uma_senha_atendida()
+        caminho = sistema.exportar_relatorio_excel(self.dia[0])
+        self.assertEqual(caminho, self.pasta / f"relatorio_{self.dia[0].isoformat()}.xlsx")
+        self.assertTrue(zipfile.is_zipfile(caminho))    # um .xlsx é um zip de XMLs
+
+    def test_exportar_exige_login_de_administrador(self):
+        sistema = self.sistema_com_uma_senha_atendida()
+        sistema.sair_do_admin()
+        with self.assertRaises(PermissionError):
+            sistema.exportar_relatorio_csv(self.dia[0])
+        with self.assertRaises(PermissionError):
+            sistema.exportar_relatorio_excel(self.dia[0])
+
+    def test_exportar_dia_sem_senhas_gera_so_o_cabecalho(self):
+        sistema = self.sistema_com_admin_e_especialista()
+        caminho = sistema.exportar_relatorio_csv(self.dia[0])
+        linhas = caminho.read_text(encoding="utf-8-sig").strip().splitlines()
+        self.assertEqual(len(linhas), 1)
 
 
 class TestRestauracao(BaseSistema):

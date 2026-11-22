@@ -195,6 +195,31 @@ class TestAdministrador(BaseTerminal):
         self.assertIn(f"RELATÓRIO DE ATENDIMENTO - {dia:%d/%m/%Y}", saida)
         self.assertIn("Nenhuma senha foi emitida neste dia.", saida)
 
+    def exportar_pelo_terminal(self, formato):
+        """Consulta o relatório de hoje (1 senha) e exporta: formato "1" = CSV, "2" = Excel."""
+        dia = date.today()
+        self.repo.salvar_senha(Senha(
+            1, Especialidade.CARDIOLOGIA, Prioridade.NORMAL, StatusSenha.AGUARDANDO,
+        ))
+        sistema = Sistema(self.repo, self.pasta)
+        sistema.criar_administrador("admin", "segredo")
+        sistema.sair_do_admin()
+        saida = self.rodar(["4", "admin", "6", dia.isoformat(), formato, "0", "0"],
+                           senhas=["segredo"], sistema=sistema)
+        return dia, saida
+
+    def test_consulta_por_data_exporta_csv(self):
+        dia, saida = self.exportar_pelo_terminal("1")
+        arquivo = self.pasta / f"relatorio_{dia.isoformat()}.csv"
+        self.assertIn(f"Relatório exportado para {arquivo}.", saida)
+        self.assertTrue(arquivo.exists())
+
+    def test_consulta_por_data_exporta_excel(self):
+        dia, saida = self.exportar_pelo_terminal("2")
+        arquivo = self.pasta / f"relatorio_{dia.isoformat()}.xlsx"
+        self.assertIn(f"Relatório exportado para {arquivo}.", saida)
+        self.assertTrue(arquivo.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

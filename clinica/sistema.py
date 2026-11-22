@@ -137,6 +137,16 @@ class Sistema:
         self._exigir_admin()
         return self.relatorio.gerar_texto(dia or self._dia_aberto)
 
+    def exportar_relatorio_csv(self, dia: date) -> Path:
+        """Exporta as senhas do dia em CSV, na pasta dos relatórios, e devolve o caminho."""
+        self._exigir_admin()
+        return self.relatorio.salvar_csv(dia, self._pasta_relatorios)
+
+    def exportar_relatorio_excel(self, dia: date) -> Path:
+        """Exporta as senhas do dia em Excel (.xlsx), na pasta dos relatórios, e devolve o caminho."""
+        self._exigir_admin()
+        return self.relatorio.salvar_excel(dia, self._pasta_relatorios)
+
     def encerrar_dia(self) -> Path:
         """Encerra o dia, gera o relatório (RF10) e devolve o caminho do arquivo."""
         self._exigir_admin()
