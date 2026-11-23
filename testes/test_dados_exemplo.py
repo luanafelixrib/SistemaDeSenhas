@@ -66,6 +66,16 @@ class TestDadosExemplo(unittest.TestCase):
         self.assertIsNone(sistema.cadastro.buscar_por_consultorio(1))
         self.assertEqual(self.ocupados(sistema), 0)
 
+    def test_erro_no_meio_do_cadastro_nao_deixa_admin_logado(self):
+        sistema = self.abrir()
+        sistema.criar_administrador("admin", "admin123")
+        for consultorio in (1, 2, 3):  # três pediatras já ocupam os consultórios 1 a 3
+            sistema.cadastrar_especialista(
+                f"Pediatra {consultorio}", Especialidade.PEDIATRIA, consultorio)
+        with self.assertRaises(ValueError):  # o Dr. Daniel (Pediatria) estoura o limite de 3
+            popular(sistema)
+        self.assertFalse(sistema.admin_logado)
+
 
 if __name__ == "__main__":
     unittest.main()

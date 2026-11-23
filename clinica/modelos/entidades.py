@@ -7,7 +7,7 @@ from typing import Optional
 from .enums import Especialidade, Prioridade, StatusSenha
 
 
-@dataclass
+@dataclass(frozen=True)
 class Especialista:
     """Representa um especialista médico."""
     nome: str

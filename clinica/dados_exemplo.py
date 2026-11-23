@@ -38,14 +38,15 @@ def popular(sistema: Sistema) -> int:
 
     # 2) Cadastro sem repetir: se o consultório já tem alguém, pula.
     cadastrados = 0
-    for nome, especialidade, consultorio in ESPECIALISTAS:
-        if sistema.cadastro.buscar_por_consultorio(consultorio) is not None:
-            continue
-        sistema.cadastrar_especialista(nome, especialidade, consultorio)
-        cadastrados += 1
-
-    # 3) Sai do modo administrador e devolve a contagem.
-    sistema.sair_do_admin()
+    try:
+        for nome, especialidade, consultorio in ESPECIALISTAS:
+            if sistema.cadastro.buscar_por_consultorio(consultorio) is not None:
+                continue
+            sistema.cadastrar_especialista(nome, especialidade, consultorio)
+            cadastrados += 1
+    finally:
+        # 3) Sai do modo administrador mesmo que o cadastro falhe no meio.
+        sistema.sair_do_admin()
     return cadastrados
 
 

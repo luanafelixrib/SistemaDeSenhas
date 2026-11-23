@@ -3,6 +3,7 @@
 Rodar na raiz do projeto: python -m unittest testes.test_cadastro_especialistas
 """
 import unittest
+from dataclasses import FrozenInstanceError
 
 from clinica.especialistas import CadastroEspecialistas
 from clinica.modelos import Especialidade, Especialista
@@ -86,6 +87,40 @@ class TestCadastroEspecialistas(unittest.TestCase):
         self.assertEqual(self.cadastro.listar(), [ana])
         self.assertIsNone(self.cadastro.buscar_por_consultorio(2))
         self.assertEqual(self.cadastro.consultorios_ativos(Especialidade.CARDIOLOGIA), 1)
+
+    def test_aceita_consultorios_nas_bordas_1_e_12(self):
+        primeiro = self.cadastro.cadastrar("Dra. Ana", Especialidade.CARDIOLOGIA, 1)
+        ultimo = self.cadastro.cadastrar("Dr. Beto", Especialidade.PEDIATRIA, 12)
+        self.assertEqual(self.cadastro.buscar_por_consultorio(1), primeiro)
+        self.assertEqual(self.cadastro.buscar_por_consultorio(12), ultimo)
+
+    def test_nome_e_salvo_sem_espacos_nas_pontas(self):
+        especialista = self.cadastro.cadastrar("  Dra. Ana  ", Especialidade.CARDIOLOGIA, 1)
+        self.assertEqual(especialista.nome, "Dra. Ana")
+
+    def test_cadastra_tres_especialistas_em_cada_uma_das_quatro_especialidades(self):
+        consultorio = 1
+        for especialidade in Especialidade:
+            for numero in range(3):
+                self.cadastro.cadastrar(
+                    f"Dr. {especialidade.name} {numero}", especialidade, consultorio)
+                consultorio += 1
+        self.assertEqual(len(self.cadastro.listar()), 12)
+        for especialidade in Especialidade:
+            self.assertEqual(self.cadastro.consultorios_ativos(especialidade), 3)
+
+    def test_tem_especialista_so_depois_de_cadastrar_na_especialidade(self):
+        self.assertFalse(self.cadastro.tem_especialista(Especialidade.CARDIOLOGIA))
+        self.cadastro.cadastrar("Dra. Ana", Especialidade.CARDIOLOGIA, 1)
+        self.assertTrue(self.cadastro.tem_especialista(Especialidade.CARDIOLOGIA))
+        self.assertFalse(self.cadastro.tem_especialista(Especialidade.PEDIATRIA))
+
+    def test_especialista_cadastrado_nao_pode_ser_alterado_por_fora(self):
+        ana = self.cadastro.cadastrar("Dra. Ana", Especialidade.CARDIOLOGIA, 1)
+        with self.assertRaises(FrozenInstanceError):
+            self.cadastro.listar()[0].consultorio = 99
+        self.assertEqual(ana.consultorio, 1)
+        self.assertEqual(self.cadastro.buscar_por_consultorio(1), ana)
 
 
 if __name__ == "__main__":

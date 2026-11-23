@@ -1,6 +1,6 @@
 # Sistema de Senhas para Clínica Médica
 
-Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto está sendo desenvolvido passo a passo pelos integrantes do grupo, com foco em modularização e no uso de estruturas de dados.
+Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto foi desenvolvido em grupo, com foco em modularização e no uso de estruturas de dados.
 
 > **Estado atual:** o sistema está completo e funciona em duas interfaces: janela (Tkinter) e terminal. Os modelos, o cadastro de especialistas (com autenticação do administrador), as filas por especialidade, o painel, o SQLite, o relatório diário em `.txt` (com consulta por data) e a exportação em CSV e Excel estão implementados e testados, e o `main.py` integra tudo. Ao reabrir o programa no meio do dia, as filas voltam do banco.
 
@@ -28,7 +28,7 @@ As especialidades disponíveis no modelo atual são Clínica Geral, Pediatria, G
 
 Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 (idosos de 60 a 79 anos) e a regra de prioridade estrita foram definidos pelo grupo e já estão implementados no código. O código 7 representa a senha normal no enum. As senhas normais não entram no heap: ficam em uma fila FIFO (`deque`) e só são chamadas quando não há senha prioritária aguardando.
 
-## Tecnologias previstas
+## Tecnologias
 
 - Python 3.10 ou superior.
 - `dataclasses` e `Enum` para os modelos.
@@ -38,7 +38,7 @@ Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 (
 - `csv`, `zipfile` e `xml.etree` para gerar os relatórios em CSV e Excel (`.xlsx`), sem bibliotecas externas.
 - Tkinter para a interface gráfica.
 
-As bibliotecas citadas fazem parte da biblioteca padrão do Python; não há dependências externas definidas até o momento.
+Todas as bibliotecas citadas fazem parte da biblioteca padrão do Python; o projeto não tem dependências externas.
 
 ## Organização dos módulos
 
@@ -60,7 +60,7 @@ Clinica-SistemaSenhaPrioridade/
 
 | Pasta | Responsabilidade | Estado |
 | --- | --- | --- |
-| `clinica/modelos/` | Especialidades, prioridades, estados, senhas e especialistas | Implementado |
+| `clinica/modelos/` | Especialidades, prioridades, estados, senhas e especialistas (o `Especialista` é imutável: depois de cadastrado, não pode ser alterado por fora) | Implementado |
 | `clinica/especialistas/` | Cadastro de especialistas e autenticação do administrador | Implementado |
 | `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado |
 | `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
@@ -102,13 +102,13 @@ Os testes automatizados rodam na raiz do projeto com `python -m unittest discove
 | --- | --- |
 | `test_fila_especialidade.py` | Heap das prioritárias, fila FIFO das normais e posição na fila |
 | `test_gerenciador.py` | Erros de emissão, chamada e finalização, encerramento do dia e estimativas de espera |
-| `test_cadastro_especialistas.py` | Regras do cadastro: nome, consultório e limite de 3 por especialidade |
+| `test_cadastro_especialistas.py` | Regras do cadastro: nome, consultórios de 1 a 12, limite de 3 por especialidade e `Especialista` imutável |
 | `test_administrador.py` | Autenticação e armazenamento da senha (salt e hash) |
 | `test_painel.py` | Dados e texto do painel |
 | `test_repositorio.py` e `test_relatorio.py` | Gravação no SQLite, relatório diário e exportação em CSV e Excel |
 | `test_sistema.py` | Abertura do dia, restauração das filas, acesso do administrador e exportação de relatórios |
 | `test_terminal.py` e `test_janela.py` | Menus do terminal (incluindo consulta e exportação de relatórios) e abas da janela |
-| `test_dados_exemplo.py` | Script de dados de exemplo |
+| `test_dados_exemplo.py` | Script de dados de exemplo, inclusive o fim do modo administrador quando o cadastro falha no meio |
 
 ### Dados de exemplo
 
@@ -118,7 +118,7 @@ Para a apresentação, o banco começa vazio e cadastrar 12 especialistas à mã
 python -m clinica.dados_exemplo
 ```
 
-Pode ser executado mais de uma vez sem duplicar nada: consultórios que já têm especialista são pulados. Se já existir um administrador com outra senha, o script para com erro e não cadastra ninguém.
+Pode ser executado mais de uma vez sem duplicar nada: consultórios que já têm especialista são pulados. Se já existir um administrador com outra senha, o script para com erro e não cadastra ninguém. Se o cadastro falhar no meio (por exemplo, uma especialidade que já tem três especialistas em outros consultórios), o script também para com erro, mas encerra o modo administrador do mesmo jeito.
 
 O usuário `admin` e a senha `admin123` servem **apenas para a demonstração**. Depois de popular, abra `python main.py` e entre na aba Administrador com esses dados.
 
