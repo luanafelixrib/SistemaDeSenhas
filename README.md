@@ -101,7 +101,7 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 
 ## Aderência à especificação
 
-- **Quantidade de integrantes:** equipe definida com cinco pessoas.
+- **Quantidade de integrantes:** equipe com cinco pessoas, composição aprovada pela professora.
 - **Especialidades:** Clínica Geral, Pediatria e Cardiologia. Registros legados de Ginecologia podem continuar existindo em bancos anteriores, mas a especialidade não aparece nos menus para novos atendimentos.
 - **Numeração:** o sistema usa um contador compartilhado por categoria dentro de cada especialidade (`N001`, depois `P002`, por exemplo), em vez de reiniciar os números por categoria.
 - **Ordem de prioridade:** primeiro são atendidas as prioridades de menor código; em empate, vale a chegada. Senhas normais são chamadas quando não há prioritárias.
@@ -138,6 +138,28 @@ Os testes automatizados rodam na raiz do projeto com `python -m unittest discove
 ## Demonstração da aplicação
 
 O exemplo cria especialistas nas três especialidades e permite percorrer as abas de retirada de senha, painel, especialista e administração. No painel, cada linha apresenta a última chamada, a categoria, o consultório, a quantidade de pessoas aguardando, a lista de senhas na ordem prevista e a espera estimada.
+
+### Capturas da interface
+
+As imagens abaixo mostram as principais telas da aplicação.
+
+**1. Retirada de senha**
+
+Tela do paciente após escolher a especialidade e emitir uma senha.
+
+(COLE A IMAGEM DA TELA DE RETIRADA DE SENHA AQUI)
+
+**2. Painel de atendimento**
+
+Painel com a última chamada, categoria, consultório, quantidade aguardando, senhas em espera e estimativa de tempo.
+
+(COLE A IMAGEM DO PAINEL AQUI)
+
+**3. Chamada pelo especialista**
+
+Tela do especialista mostrando a chamada da próxima senha para o consultório.
+
+(COLE A IMAGEM DA CHAMADA DO ESPECIALISTA AQUI)
 
 ### Dados de exemplo
 
