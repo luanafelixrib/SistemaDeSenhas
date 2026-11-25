@@ -5,3 +5,6 @@ __pycache__/
 dados/
 relatorios/
 *.db
+
+# Arquivos temporários usados para a demonstração local
+tmp/

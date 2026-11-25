@@ -1,8 +1,8 @@
 # Sistema de Senhas para Clínica Médica
 
-Sistema acadêmico em Python para organizar a fila de atendimento de uma clínica médica por especialidade e prioridade. O projeto foi desenvolvido em grupo, com foco em modularização e no uso de estruturas de dados.
+Este projeto implementa, em Python, um sistema de atendimento para uma clínica médica. O paciente escolhe uma especialidade e recebe uma senha normal ou prioritária. O especialista chama a próxima senha, e o painel informa a chamada atual e a situação da fila.
 
-> **Estado atual:** o sistema está completo e funciona em duas interfaces: janela (Tkinter) e terminal. Os modelos, o cadastro de especialistas (com autenticação do administrador), as filas por especialidade, o painel, o SQLite, o relatório diário em `.txt` (com consulta por data) e a exportação em CSV e Excel estão implementados e testados, e o `main.py` integra tudo. Ao reabrir o programa no meio do dia, as filas voltam do banco.
+O sistema pode ser usado por uma janela gráfica ou pelo terminal. Também mantém os dados em SQLite, restaura as filas ao reabrir durante o dia e gera relatórios diários. As funcionalidades têm testes automatizados no pacote `testes/`.
 
 ## Objetivos
 
@@ -14,7 +14,7 @@ Sistema acadêmico em Python para organizar a fila de atendimento de uma clínic
 
 ## Especialidades e prioridades
 
-As especialidades disponíveis no modelo atual são Clínica Geral, Pediatria, Ginecologia e Cardiologia, conforme o enunciado. Cada especialidade comporta até três especialistas e a clínica tem 12 consultórios (4 × 3 = 12). Como o código percorre o enum `Especialidade`, incluir uma nova especialidade exige alterar o enum e rever o total de consultórios.
+O modelo atual oferece quatro especialidades: Clínica Geral, Pediatria, Ginecologia e Cardiologia, com até três especialistas por especialidade e 12 consultórios. A especificação recebida pelo grupo indica três especialidades. Como ela não identifica, nas informações disponíveis nesta revisão, qual especialidade deve ser retirada, o código mantém as quatro e este ponto permanece como divergência a esclarecer.
 
 | Código | Prioridade |
 | --- | --- |
@@ -26,7 +26,7 @@ As especialidades disponíveis no modelo atual são Clínica Geral, Pediatria, G
 | 6 | Crianças no colo |
 | 7 | Senha normal |
 
-Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 (idosos de 60 a 79 anos) e a regra de prioridade estrita foram definidos pelo grupo e já estão implementados no código. O código 7 representa a senha normal no enum. As senhas normais não entram no heap: ficam em uma fila FIFO (`deque`) e só são chamadas quando não há senha prioritária aguardando.
+Os códigos de 1 a 6 representam as categorias prioritárias. O código 2, para idosos de 60 a 79 anos, e a ordem de atendimento entre categorias foram definidos pelo grupo. O código 7 representa a senha normal. As senhas normais não entram no heap: ficam em uma fila FIFO (`deque`) e só são chamadas quando não há senha prioritária aguardando.
 
 ## Tecnologias
 
@@ -50,11 +50,11 @@ Todas as bibliotecas citadas fazem parte da biblioteca padrão do Python; o proj
 
 ### Numeração das senhas
 
-Cada especialidade tem um contador único compartilhado pelas categorias normal e prioritária. A letra identifica a categoria (`N` para normal e `P` para prioritária) e os três dígitos identificam a posição de emissão naquela especialidade. Por exemplo, uma senha normal `N001` seguida de uma prioritária pode resultar em `P002`. Essa escolha evita repetir números dentro da especialidade; por isso, a numeração não reinicia separadamente para cada categoria.
+Cada especialidade tem um contador compartilhado pelas categorias normal e prioritária. A letra identifica a categoria (`N` para normal e `P` para prioritária), e os três dígitos indicam a sequência de emissão naquela especialidade. Assim, uma senha normal `N001` seguida por uma prioritária pode resultar em `P002`. O contador não reinicia para cada categoria.
 
 ### Ordem de chamada adotada
 
-As senhas prioritárias são chamadas pela ordem dos códigos de prioridade de 1 a 6 e, dentro da mesma categoria, por ordem de chegada. Senhas normais mantêm FIFO e aguardam enquanto houver alguma prioridade na fila. Essa prioridade estrita é a hipótese adotada pelo grupo e deve ser explicada na apresentação.
+As senhas prioritárias são chamadas pela ordem dos códigos de prioridade de 1 a 6 e, dentro da mesma categoria, por ordem de chegada. Senhas normais mantêm FIFO e aguardam enquanto houver alguma prioridade na fila. Essa é a política de atendimento implementada pelo grupo.
 
 ## Organização dos módulos
 
@@ -97,7 +97,16 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 - A prioridade estrita foi definida pelo grupo: senhas prioritárias são chamadas antes das normais; entre prioritárias, vale o menor código e, no empate, a ordem de chegada.
 - A estimativa geral de espera considera o total de senhas aguardando, o tempo médio de atendimento de 30 minutos e a quantidade de consultórios ativos da especialidade.
 - A estimativa por senha usa a mesma conta da estimativa geral: quantidade de pessoas à frente multiplicada por 30 minutos e dividida pelos consultórios ativos da especialidade, arredondada para cima. Por ser uma média, deve ser exibida como estimativa, sem garantia de tempo.
-- Alguns detalhes do encerramento diário também continuam como propostas a validar.
+- No encerramento diário, senhas ainda aguardando ficam como não atendidas; atendimentos que já começaram contam como finalizados, sem horário final inventado.
+
+## Aderência à especificação
+
+- **Quantidade de integrantes:** o grupo relacionado abaixo tem cinco pessoas. A especificação recebida indica limite de três integrantes; essa divergência depende de orientação da disciplina.
+- **Especialidades:** a implementação oferece quatro especialidades, enquanto a especificação recebida indica três. A lista exata das três não está identificada nas informações disponíveis para esta revisão.
+- **Numeração:** o sistema usa um contador compartilhado por categoria dentro de cada especialidade (`N001`, depois `P002`, por exemplo), em vez de reiniciar os números por categoria.
+- **Ordem de prioridade:** primeiro são atendidas as prioridades de menor código; em empate, vale a chegada. Senhas normais são chamadas quando não há prioritárias.
+
+Os itens acima descrevem o comportamento entregue para que a avaliação possa ser feita com clareza. Recursos como cadastro administrativo, persistência SQLite e exportação de relatórios são complementos do grupo.
 
 ## Como executar
 
@@ -126,11 +135,9 @@ Os testes automatizados rodam na raiz do projeto com `python -m unittest discove
 | `test_terminal.py` e `test_janela.py` | Menus do terminal (incluindo consulta e exportação de relatórios) e abas da janela |
 | `test_dados_exemplo.py` | Script de dados de exemplo, inclusive o fim do modo administrador quando o cadastro falha no meio |
 
-## Demonstração visual
+## Demonstração da aplicação
 
-As capturas de tela da janela devem ser inseridas nesta seção antes da entrega. Para obtê-las, execute `python -m clinica.dados_exemplo`, abra `python main.py` e capture as abas **Retirar senha**, **Painel** e **Especialista** com dados de exemplo visíveis. O painel exibe a última chamada, sua categoria, a quantidade de pacientes aguardando, a relação de senhas em espera e a estimativa de tempo.
-
-> A gravação do vídeo de apresentação (5 a 10 minutos), a confirmação de acesso do professor ao repositório e o envio individual pelo Blackboard são etapas externas ao código. O prazo informado pelo grupo é **26/11/2026**.
+O exemplo cria especialistas nas quatro especialidades e permite percorrer as abas de retirada de senha, painel, especialista e administração. No painel, cada linha apresenta a última chamada, a categoria, o consultório, a quantidade de pessoas aguardando, a lista de senhas na ordem prevista e a espera estimada.
 
 ### Dados de exemplo
 
