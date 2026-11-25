@@ -23,6 +23,9 @@ class TestSenhas(unittest.TestCase):
     def setUp(self):
         self.repo = Repositorio(":memory:")
 
+    def tearDown(self):
+        self.repo.fechar()
+
     def test_grava_e_le_todos_os_campos(self):
         ana = Especialista("Dra. Ana", Especialidade.CARDIOLOGIA, 1)
         original = senha(
@@ -73,6 +76,9 @@ class TestCadastro(unittest.TestCase):
     def setUp(self):
         self.repo = Repositorio(":memory:")
 
+    def tearDown(self):
+        self.repo.fechar()
+
     def test_especialistas_voltam_ordenados_por_consultorio(self):
         self.repo.salvar_especialista(Especialista("Dr. Beto", Especialidade.PEDIATRIA, 5))
         self.repo.salvar_especialista(Especialista("Dra. Ana", Especialidade.CARDIOLOGIA, 1))
@@ -96,6 +102,85 @@ class TestCadastro(unittest.TestCase):
         linhas = self.repo._conexao.execute("SELECT * FROM administrador").fetchall()
         self.assertNotIn(b"segredo123", b"".join(
             v if isinstance(v, bytes) else str(v).encode() for linha in linhas for v in linha))
+
+
+class TestSegurancaTransacoesERecuperacao(unittest.TestCase):
+    def setUp(self):
+        self.repo = Repositorio(":memory:")
+
+    def tearDown(self):
+        self.repo.fechar()
+
+    def test_transacao_em_lote_persiste_tudo_quando_da_certo(self):
+        def operacao():
+            self.repo.salvar_especialista(Especialista("Dra. Ana", Especialidade.CARDIOLOGIA, 1))
+            self.repo.salvar_senha(senha(numero=1))
+            self.repo.salvar_senha(senha(numero=2))
+
+        self.repo.executar_em_transacao(operacao)
+
+        self.assertTrue(self.repo.verificar_integridade())
+        self.assertEqual(len(self.repo.listar_especialistas()), 1)
+        self.assertEqual([s.numero for s in self.repo.listar_senhas(date(2026, 11, 16))], [1, 2])
+
+    def test_falha_no_meio_da_operacao_faz_rollback_sem_deixar_metade(self):
+        self.repo.salvar_senha(senha(numero=1, status=StatusSenha.AGUARDANDO))
+
+        def operacao_com_falha():
+            self.repo.salvar_especialista(Especialista("Dr. Carlos", Especialidade.PEDIATRIA, 2))
+            self.repo.salvar_senha(senha(numero=1, status=StatusSenha.FINALIZADA))
+            raise RuntimeError("Queda simulada no meio da gravação")
+
+        with self.assertRaises(RuntimeError):
+            self.repo.executar_em_transacao(operacao_com_falha)
+
+        self.assertEqual(self.repo.listar_especialistas(), [])
+        senhas_dia = self.repo.listar_senhas(date(2026, 11, 16))
+        self.assertEqual(len(senhas_dia), 1)
+        self.assertEqual(senhas_dia[0].status, StatusSenha.AGUARDANDO)
+        self.assertTrue(self.repo.verificar_integridade())
+
+    def test_backup_e_restauracao_explicita_em_disco(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            pasta_path = Path(pasta)
+            banco_path = pasta_path / "clinica.db"
+            backup_path = pasta_path / "backup" / "clinica_bkp.db"
+
+            repo = Repositorio(banco_path)
+            repo.salvar_especialista(Especialista("Dra. Ana", Especialidade.CARDIOLOGIA, 1))
+            repo.salvar_senha(senha(numero=1, status=StatusSenha.AGUARDANDO))
+            repo.criar_backup(backup_path)
+
+            # Altera o banco principal depois do backup (não apaga nem restaura sozinho)
+            repo.salvar_senha(senha(numero=1, status=StatusSenha.FINALIZADA))
+            repo.salvar_senha(senha(numero=2, status=StatusSenha.AGUARDANDO))
+            repo.fechar()
+
+            # Reabre e restaura explicitamente o backup
+            repo_restaurado = Repositorio(banco_path)
+            repo_restaurado.restaurar_backup(backup_path)
+
+            self.assertTrue(repo_restaurado.verificar_integridade())
+            senhas_dia = repo_restaurado.listar_senhas(date(2026, 11, 16))
+            self.assertEqual(len(senhas_dia), 1)
+            self.assertEqual(senhas_dia[0].status, StatusSenha.AGUARDANDO)
+            repo_restaurado.fechar()
+
+    def test_restauracao_invalida_nao_apaga_dados_atuais(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            pasta_path = Path(pasta)
+            banco_path = pasta_path / "clinica.db"
+            backup_invalido = pasta_path / "corrompido.db"
+            backup_invalido.write_bytes(b"nao e um sqlite valido")
+
+            repo = Repositorio(banco_path)
+            repo.salvar_senha(senha(numero=10))
+
+            with self.assertRaises(ValueError):
+                repo.restaurar_backup(backup_invalido)
+
+            self.assertEqual([s.numero for s in repo.listar_senhas(date(2026, 11, 16))], [10])
+            repo.fechar()
 
 
 class TestPersistenciaEmDisco(unittest.TestCase):
