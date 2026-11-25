@@ -138,4 +138,4 @@ O usuário `admin` e a senha `admin123` servem **apenas para a demonstração**.
 | Luana | Separação entre a fila FIFO das normais e o heap das prioritárias, posição na fila e estimativa individual de espera; script de dados de exemplo; testes de `FilaEspecialidade` e `GerenciadorFilas` |
 | Bruna | Testes do cadastro de especialistas |
 | Levi | Consulta de relatórios de datas anteriores e exportação em CSV e Excel |
-| Iago | Segurança das operações com o SQLite (em andamento) |
+| Iago | Segurança e estabilidade das operações com o SQLite: transações com rollback, modo WAL com tempo de espera, verificação de integridade e backup e restauração do banco, com testes |

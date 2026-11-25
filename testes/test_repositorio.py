@@ -182,6 +182,34 @@ class TestSegurancaTransacoesERecuperacao(unittest.TestCase):
             self.assertEqual([s.numero for s in repo.listar_senhas(date(2026, 11, 16))], [10])
             repo.fechar()
 
+    def test_restauracao_de_arquivo_inexistente_nao_mexe_no_banco(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            repo = Repositorio(Path(pasta) / "clinica.db")
+            repo.salvar_senha(senha(numero=10))
+
+            with self.assertRaises(FileNotFoundError):
+                repo.restaurar_backup(Path(pasta) / "nao_existe.db")
+
+            self.assertEqual([s.numero for s in repo.listar_senhas(date(2026, 11, 16))], [10])
+            repo.fechar()
+
+    def test_restaurar_backup_em_banco_na_memoria_levanta_erro(self):
+        with self.assertRaises(RuntimeError):
+            self.repo.restaurar_backup("qualquer.db")
+
+    def test_backup_nao_deixa_arquivo_temporario_nem_trava_o_arquivo(self):
+        with tempfile.TemporaryDirectory() as pasta:
+            pasta_path = Path(pasta)
+            repo = Repositorio(pasta_path / "clinica.db")
+            repo.salvar_senha(senha(numero=1))
+
+            backup = repo.criar_backup(pasta_path / "bkp" / "copia.db")
+
+            self.assertEqual(list(backup.parent.glob(".*.tmp")), [])
+            backup.unlink()  # no Windows falharia se o backup ainda estivesse aberto
+            self.assertFalse(backup.exists())
+            repo.fechar()
+
 
 class TestPersistenciaEmDisco(unittest.TestCase):
     def test_dados_continuam_depois_de_fechar_e_reabrir(self):

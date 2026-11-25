@@ -109,8 +109,12 @@ class Repositorio:
         destino_path.parent.mkdir(parents=True, exist_ok=True)
         temp_path = destino_path.with_name(f".{destino_path.name}.tmp")
         try:
-            with sqlite3.connect(str(temp_path), timeout=10.0) as backup_conn:
+            backup_conn = sqlite3.connect(str(temp_path), timeout=10.0)
+            try:
                 self._conexao.backup(backup_conn)
+            finally:
+                # Fecha antes de renomear: no Windows um arquivo aberto não pode ser movido.
+                backup_conn.close()
             temp_path.replace(destino_path)
         except BaseException:
             if temp_path.exists():
@@ -131,10 +135,8 @@ class Repositorio:
         if not origem_path.is_file():
             raise FileNotFoundError(f"Arquivo de backup não encontrado: {origem_path}")
 
-        with sqlite3.connect(str(origem_path), timeout=10.0) as teste_conn:
-            integridade = teste_conn.execute("PRAGMA integrity_check").fetchall()
-            if not (len(integridade) == 1 and integridade[0][0] == "ok"):
-                raise ValueError(f"Backup inválido ou corrompido: {origem_path}")
+        if not self._backup_e_integro(origem_path):
+            raise ValueError(f"Backup inválido ou corrompido: {origem_path}")
 
         temp_destino = self._caminho.with_name(f".{self._caminho.name}.restore.tmp")
         shutil.copy2(origem_path, temp_destino)
@@ -148,6 +150,20 @@ class Repositorio:
             self._conexao = self._abrir_conexao(str(self._caminho), em_memoria=False)
             raise
         self._conexao = self._abrir_conexao(str(self._caminho), em_memoria=False)
+
+    @staticmethod
+    def _backup_e_integro(caminho: Path) -> bool:
+        """True se o arquivo abre como SQLite e passa no PRAGMA integrity_check."""
+        conexao = None
+        try:
+            conexao = sqlite3.connect(str(caminho), timeout=10.0)
+            resultado = conexao.execute("PRAGMA integrity_check").fetchall()
+            return len(resultado) == 1 and resultado[0][0] == "ok"
+        except sqlite3.DatabaseError:  # "file is not a database" e semelhantes
+            return False
+        finally:
+            if conexao is not None:
+                conexao.close()
 
     def fechar(self) -> None:
         if self._conexao is not None:
@@ -248,5 +264,3 @@ class Repositorio:
             return None
         usuario, salt, hash_senha = linha
         return Administrador.restaurar(usuario, salt, hash_senha)
-    
-    
