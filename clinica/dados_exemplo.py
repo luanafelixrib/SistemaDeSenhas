@@ -11,7 +11,7 @@ from clinica.sistema import Sistema
 USUARIO = "admin"
 SENHA = "admin123"
 
-# (nome, especialidade, consultório): 3 por especialidade.
+# (nome, especialidade, consultório): 3 por especialidade ativa.
 ESPECIALISTAS = [
     ("Dra. Ana Lima", Especialidade.CLINICA_GERAL, 1),
     ("Dr. Bruno Reis", Especialidade.CLINICA_GERAL, 2),
@@ -19,12 +19,9 @@ ESPECIALISTAS = [
     ("Dr. Daniel Costa", Especialidade.PEDIATRIA, 4),
     ("Dra. Elisa Martins", Especialidade.PEDIATRIA, 5),
     ("Dr. Fabio Rocha", Especialidade.PEDIATRIA, 6),
-    ("Dra. Gabriela Nunes", Especialidade.GINECOLOGIA, 7),
-    ("Dra. Helena Duarte", Especialidade.GINECOLOGIA, 8),
-    ("Dra. Isabela Prado", Especialidade.GINECOLOGIA, 9),
-    ("Dr. Joao Mendes", Especialidade.CARDIOLOGIA, 10),
-    ("Dr. Lucas Ferraz", Especialidade.CARDIOLOGIA, 11),
-    ("Dra. Marina Teixeira", Especialidade.CARDIOLOGIA, 12),
+    ("Dr. Joao Mendes", Especialidade.CARDIOLOGIA, 7),
+    ("Dr. Lucas Ferraz", Especialidade.CARDIOLOGIA, 8),
+    ("Dra. Marina Teixeira", Especialidade.CARDIOLOGIA, 9),
 ]
 
 

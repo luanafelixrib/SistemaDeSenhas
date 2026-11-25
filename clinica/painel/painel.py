@@ -6,7 +6,7 @@ usam as mesmas linhas, então trocar de um para o outro não mexe na lógica.
 from dataclasses import dataclass
 
 from clinica.filas import GerenciadorFilas
-from clinica.modelos import Especialidade
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade
 
 
 @dataclass
@@ -30,7 +30,7 @@ class Painel:
     def linhas(self) -> list[LinhaPainel]:
         """Uma linha por especialidade, na ordem do enum."""
         linhas = []
-        for especialidade in Especialidade:
+        for especialidade in ESPECIALIDADES_ATIVAS:
             ultima = self._gerenciador.ultima_chamada(especialidade)
             aguardando = self._gerenciador.senhas_aguardando(especialidade)
             linhas.append(LinhaPainel(

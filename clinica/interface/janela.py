@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 
 from clinica.especialistas.cadastro import CONSULTORIOS
-from clinica.modelos import Especialidade, Prioridade
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade, Prioridade
 from clinica.painel import formatar_espera
 from clinica.sistema import Sistema
 
@@ -61,7 +61,7 @@ class AbaPaciente(ttk.Frame):
 
         quadro = ttk.LabelFrame(self, text="1. Especialidade", padding=12)
         quadro.grid(row=1, column=0, sticky="nsew", padx=(0, 12), pady=12)
-        for linha, especialidade in enumerate(Especialidade):
+        for linha, especialidade in enumerate(ESPECIALIDADES_ATIVAS):
             botao = ttk.Radiobutton(quadro, text=especialidade.value,
                                     value=especialidade.name, variable=self._especialidade)
             botao.grid(row=linha, column=0, sticky="w", pady=4)
@@ -148,7 +148,7 @@ class AbaPainel(ttk.Frame):
 
         ttk.Label(self, text="Painel de atendimento", font=FONTE_TITULO).pack(anchor="w")
         self.tabela = ttk.Treeview(
-            self, style="Painel.Treeview", height=len(Especialidade), selectmode="none",
+            self, style="Painel.Treeview", height=len(ESPECIALIDADES_ATIVAS), selectmode="none",
             columns=("especialidade", "senha", "categoria", "consultorio", "quantidade",
                      "aguardando", "espera"), show="headings")
         for coluna, titulo, largura in (("especialidade", "Especialidade", 145),
@@ -331,7 +331,7 @@ class AbaAdministrador(ttk.Frame):
         ttk.Entry(cadastro, textvariable=self._nome, width=24).grid(row=0, column=1, pady=3)
         ttk.Label(cadastro, text="Especialidade:").grid(row=1, column=0, sticky="w", pady=3)
         self.combo_especialidade = ttk.Combobox(
-            cadastro, state="readonly", width=21, values=[e.value for e in Especialidade])
+            cadastro, state="readonly", width=21, values=[e.value for e in ESPECIALIDADES_ATIVAS])
         self.combo_especialidade.grid(row=1, column=1, pady=3)
         ttk.Label(cadastro, text="Consultório:").grid(row=2, column=0, sticky="w", pady=3)
         self.combo_consultorio = ttk.Combobox(
@@ -370,7 +370,7 @@ class AbaAdministrador(ttk.Frame):
             return
         try:
             especialista = self._sistema.cadastrar_especialista(
-                self._nome.get(), list(Especialidade)[indice], int(self.combo_consultorio.get()))
+                                        self._nome.get(), ESPECIALIDADES_ATIVAS[indice], int(self.combo_consultorio.get()))
         except (ValueError, PermissionError) as erro:
             self._dialogos.erro(str(erro))
             return

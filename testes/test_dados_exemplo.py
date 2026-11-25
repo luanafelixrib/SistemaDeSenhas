@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from clinica.dados_exemplo import popular
-from clinica.modelos import Especialidade
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade
 from clinica.relatorio import Repositorio
 from clinica.sistema import Sistema
 
@@ -25,15 +25,15 @@ class TestDadosExemplo(unittest.TestCase):
         return sum(1 for n in range(1, 13)
                    if sistema.cadastro.buscar_por_consultorio(n) is not None)
 
-    def test_cadastra_12_especialistas(self):
+    def test_cadastra_nove_especialistas(self):
         sistema = self.abrir()
         total = popular(sistema)
-        self.assertEqual(total, 12)
+        self.assertEqual(total, 9)
 
     def test_tres_por_especialidade(self):
         sistema = self.abrir()
         popular(sistema)
-        for especialidade in Especialidade:
+        for especialidade in ESPECIALIDADES_ATIVAS:
             doutores = [n for n in range(1, 13)
                         if sistema.cadastro.buscar_por_consultorio(n) is not None
                         and sistema.cadastro.buscar_por_consultorio(n).especialidade == especialidade]
@@ -44,13 +44,13 @@ class TestDadosExemplo(unittest.TestCase):
         popular(sistema)
         segunda = popular(sistema)
         self.assertEqual(segunda, 0)
-        self.assertEqual(self.ocupados(sistema), 12)
+        self.assertEqual(self.ocupados(sistema), 9)
 
     def test_dados_continuam_depois_de_reabrir(self):
         popular(self.abrir())
         reaberto = self.abrir()
         self.assertIsNotNone(reaberto.cadastro.buscar_por_consultorio(1))
-        self.assertEqual(self.ocupados(reaberto), 12)
+        self.assertEqual(self.ocupados(reaberto), 9)
 
     def test_admin_criado_consegue_entrar(self):
         popular(self.abrir())

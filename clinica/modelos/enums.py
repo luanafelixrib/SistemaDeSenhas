@@ -4,11 +4,20 @@ from enum import Enum
 
 
 class Especialidade(Enum):
-    """Especialidades médicas disponíveis na clínica."""
+    """Especialidades e valores legados persistidos no SQLite."""
     CLINICA_GERAL = "Clínica Geral"
     PEDIATRIA = "Pediatria"
+    # Mantida para abrir registros de bancos criados por versões anteriores.
     GINECOLOGIA = "Ginecologia"
     CARDIOLOGIA = "Cardiologia"
+
+
+# Opções oferecidas para novos atendimentos, conforme o limite do trabalho.
+ESPECIALIDADES_ATIVAS = (
+    Especialidade.CLINICA_GERAL,
+    Especialidade.PEDIATRIA,
+    Especialidade.CARDIOLOGIA,
+)
 
 
 class Prioridade(Enum):

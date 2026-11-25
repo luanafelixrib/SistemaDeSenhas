@@ -6,7 +6,7 @@ import unittest
 
 from clinica.especialistas import CadastroEspecialistas
 from clinica.filas import GerenciadorFilas
-from clinica.modelos import Especialidade, Prioridade, Senha
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade, Prioridade, Senha
 from clinica.painel import LinhaPainel, Painel
 
 
@@ -42,7 +42,7 @@ class TestPainel(unittest.TestCase):
 
     def test_uma_linha_por_especialidade_na_ordem_do_enum(self):
         linhas = self.painel.linhas()
-        self.assertEqual([l.especialidade for l in linhas], list(Especialidade))
+        self.assertEqual([l.especialidade for l in linhas], list(ESPECIALIDADES_ATIVAS))
         self.assertTrue(all(isinstance(l, LinhaPainel) for l in linhas))
 
     def test_sem_chamada_nao_mostra_senha_nem_consultorio(self):
@@ -71,7 +71,6 @@ class TestPainel(unittest.TestCase):
         self.assertEqual(self.linha(Especialidade.CARDIOLOGIA).espera_estimada_min, 75)
 
     def test_especialidade_sem_especialista_fica_indisponivel(self):
-        self.assertIsNone(self.linha(Especialidade.GINECOLOGIA).espera_estimada_min)
         self.assertIsNone(self.linha(Especialidade.CLINICA_GERAL).espera_estimada_min)
 
     def test_fila_vazia_com_especialista_tem_espera_zero(self):

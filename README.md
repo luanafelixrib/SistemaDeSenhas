@@ -14,7 +14,7 @@ O sistema pode ser usado por uma janela gráfica ou pelo terminal. Também mant�
 
 ## Especialidades e prioridades
 
-O modelo atual oferece quatro especialidades: Clínica Geral, Pediatria, Ginecologia e Cardiologia, com até três especialistas por especialidade e 12 consultórios. A especificação recebida pelo grupo indica três especialidades. Como ela não identifica, nas informações disponíveis nesta revisão, qual especialidade deve ser retirada, o código mantém as quatro e este ponto permanece como divergência a esclarecer.
+O sistema oferece três especialidades: Clínica Geral, Pediatria e Cardiologia, com até três especialistas por especialidade. A Ginecologia foi retirada das opções para novos atendimentos, conforme o limite do trabalho. O enum legado é mantido internamente para permitir a leitura de registros antigos do SQLite. Há 12 consultórios disponíveis.
 
 | Código | Prioridade |
 | --- | --- |
@@ -101,8 +101,8 @@ Os módulos são importados a partir da raiz do projeto, por exemplo `from clini
 
 ## Aderência à especificação
 
-- **Quantidade de integrantes:** o grupo relacionado abaixo tem cinco pessoas. A especificação recebida indica limite de três integrantes; essa divergência depende de orientação da disciplina.
-- **Especialidades:** a implementação oferece quatro especialidades, enquanto a especificação recebida indica três. A lista exata das três não está identificada nas informações disponíveis para esta revisão.
+- **Quantidade de integrantes:** equipe definida com cinco pessoas.
+- **Especialidades:** Clínica Geral, Pediatria e Cardiologia. Registros legados de Ginecologia podem continuar existindo em bancos anteriores, mas a especialidade não aparece nos menus para novos atendimentos.
 - **Numeração:** o sistema usa um contador compartilhado por categoria dentro de cada especialidade (`N001`, depois `P002`, por exemplo), em vez de reiniciar os números por categoria.
 - **Ordem de prioridade:** primeiro são atendidas as prioridades de menor código; em empate, vale a chegada. Senhas normais são chamadas quando não há prioritárias.
 
@@ -137,11 +137,11 @@ Os testes automatizados rodam na raiz do projeto com `python -m unittest discove
 
 ## Demonstração da aplicação
 
-O exemplo cria especialistas nas quatro especialidades e permite percorrer as abas de retirada de senha, painel, especialista e administração. No painel, cada linha apresenta a última chamada, a categoria, o consultório, a quantidade de pessoas aguardando, a lista de senhas na ordem prevista e a espera estimada.
+O exemplo cria especialistas nas três especialidades e permite percorrer as abas de retirada de senha, painel, especialista e administração. No painel, cada linha apresenta a última chamada, a categoria, o consultório, a quantidade de pessoas aguardando, a lista de senhas na ordem prevista e a espera estimada.
 
 ### Dados de exemplo
 
-Para a apresentação, o banco começa vazio e cadastrar 12 especialistas à mão toda vez seria demorado. Este comando já deixa tudo pronto (12 especialistas, 3 por especialidade, nos consultórios 1 a 12, e um administrador):
+Para a apresentação, o banco começa vazio e cadastrar nove especialistas à mão toda vez seria demorado. Este comando já deixa tudo pronto (nove especialistas, três por especialidade, nos consultórios 1 a 9, e um administrador):
 
 ```
 python -m clinica.dados_exemplo

@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import date
 
 from clinica.especialistas.cadastro import CONSULTORIOS
-from clinica.modelos import Especialidade, Prioridade
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade, Prioridade
 from clinica.painel import formatar_espera
 from clinica.sistema import Sistema
 
@@ -70,7 +70,7 @@ class Terminal:
         return self._ler_opcao("Opção: ", 0, len(opcoes))
 
     def _escolher_especialidade(self, avisar_sem_especialista: bool = False) -> Especialidade | None:
-        especialidades = list(Especialidade)
+        especialidades = list(ESPECIALIDADES_ATIVAS)
         self._saida("\nEspecialidades:")
         for numero, especialidade in enumerate(especialidades, start=1):
             aviso = ""

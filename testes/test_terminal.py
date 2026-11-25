@@ -36,11 +36,11 @@ class TestFluxoCompleto(BaseTerminal):
     def test_do_primeiro_acesso_ao_relatorio(self):
         respostas = [
             "4", "admin",                       # área do administrador: primeiro acesso
-            "1", "Dra. Ana", "4", "1",          # cadastrar: Cardiologia, consultório 1
+            "1", "Dra. Ana", "3", "1",          # cadastrar: Cardiologia, consultório 1
             "2",                                # listar
             "0",                                # sair da área
-            "1", "4", "N",                      # retirar senha normal de Cardiologia
-            "1", "4", "P", "4",                 # retirar senha prioritária (gestante)
+            "1", "3", "N",                      # retirar senha normal de Cardiologia
+            "1", "3", "P", "4",                 # retirar senha prioritária (gestante)
             "2",                                # painel
             "3", "1", "1", "1", "2", "0",       # especialista: chama, chama de novo (erro), finaliza
             "2",                                # painel
@@ -95,12 +95,12 @@ class TestPaciente(BaseTerminal):
         self.assertIn("Não foi possível emitir a senha", saida)
 
     def test_tipo_de_senha_invalido_pede_de_novo(self):
-        saida = self.rodar(["1", "4", "x", "N", "0"], sistema=self.sistema_com_cardiologia())
+        saida = self.rodar(["1", "3", "x", "N", "0"], sistema=self.sistema_com_cardiologia())
         self.assertIn("Digite N para normal ou P para prioritária.", saida)
         self.assertIn("Sua senha: N001", saida)
 
     def test_voltar_na_prioridade_nao_emite_senha(self):
-        saida = self.rodar(["1", "4", "P", "0", "0"], sistema=self.sistema_com_cardiologia())
+        saida = self.rodar(["1", "3", "P", "0", "0"], sistema=self.sistema_com_cardiologia())
         self.assertNotIn("Sua senha", saida)
 
 
@@ -144,7 +144,7 @@ class TestAdministrador(BaseTerminal):
         self.assertFalse(sistema.admin_logado)
 
     def test_cadastro_com_erro_mostra_o_motivo(self):
-        respostas = ["4", "admin", "1", "Dra. Ana", "4", "1",
+        respostas = ["4", "admin", "1", "Dra. Ana", "3", "1",
                      "1", "Dr. Beto", "2", "1",         # consultório 1 já ocupado
                      "0", "0"]
         saida = self.rodar(respostas, senhas=["segredo", "segredo"])

@@ -7,7 +7,7 @@ import unittest
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 
-from clinica.modelos import Especialidade, Prioridade, Senha, StatusSenha
+from clinica.modelos import ESPECIALIDADES_ATIVAS, Especialidade, Prioridade, Senha, StatusSenha
 from clinica.relatorio import Repositorio
 from clinica.sistema import Sistema
 
@@ -130,7 +130,7 @@ class TestAbaPainel(BaseJanela):
 
     def test_mostra_uma_linha_por_especialidade(self):
         self.janela.aba_painel.atualizar()
-        self.assertEqual(len(self.janela.aba_painel.tabela.get_children()), len(Especialidade))
+        self.assertEqual(len(self.janela.aba_painel.tabela.get_children()), len(ESPECIALIDADES_ATIVAS))
         self.assertEqual(self.valores(CARDIO)[6], "indisponível")
 
     def test_mostra_a_ultima_chamada(self):
@@ -224,7 +224,7 @@ class TestAbaAdministrador(BaseJanela):
         self.logar_admin()
         aba = self.janela.aba_administrador
         aba._nome.set("Dra. Ana")
-        aba.combo_especialidade.current(3)                     # Cardiologia
+        aba.combo_especialidade.current(2)                     # Cardiologia
         aba.combo_consultorio.current(0)                       # consultório 1
         aba.cadastrar()
         self.assertEqual(len(aba.tabela.get_children()), 1)
@@ -237,7 +237,7 @@ class TestAbaAdministrador(BaseJanela):
         aba.cadastrar()                                        # nada escolhido
         self.assertEqual(self.dialogos.erros, ["Escolha a especialidade e o consultório."])
         aba._nome.set("")
-        aba.combo_especialidade.current(3)
+        aba.combo_especialidade.current(2)
         aba.combo_consultorio.current(0)
         aba.cadastrar()                                        # nome vazio
         self.assertEqual(len(self.dialogos.erros), 2)
