@@ -131,7 +131,7 @@ class TestAbaPainel(BaseJanela):
     def test_mostra_uma_linha_por_especialidade(self):
         self.janela.aba_painel.atualizar()
         self.assertEqual(len(self.janela.aba_painel.tabela.get_children()), len(Especialidade))
-        self.assertEqual(self.valores(CARDIO)[3], "indisponível")
+        self.assertEqual(self.valores(CARDIO)[6], "indisponível")
 
     def test_mostra_a_ultima_chamada(self):
         self.com_cardiologia()
@@ -139,7 +139,8 @@ class TestAbaPainel(BaseJanela):
         self.sistema.emitir_senha(CARDIO)
         self.sistema.chamar_proxima(1)
         self.janela.aba_painel.atualizar()
-        self.assertEqual(self.valores(CARDIO), ["Cardiologia", "N001", "1", "~30 min"])
+        self.assertEqual(self.valores(CARDIO),
+                         ["Cardiologia", "N001", "Normal", "1", "1", "N002", "~30 min"])
 
 
 class TestAbaEspecialista(BaseJanela):

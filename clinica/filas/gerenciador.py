@@ -155,6 +155,11 @@ class GerenciadorFilas:
         fila = self._filas.get(especialidade)
         return fila.posicao(numero) if fila else None
 
+    def senhas_aguardando(self, especialidade: Especialidade) -> list[Senha]:
+        """Senhas que aguardam nesta especialidade, na ordem prevista de chamada."""
+        fila = self._filas.get(especialidade)
+        return fila.ordem_prevista() if fila else []
+
     def _minutos_para(self, especialidade: Especialidade, pessoas_na_frente: int) -> int:
         """Minutos até a vez de quem tem essa quantidade de pessoas na frente (RN05).
 

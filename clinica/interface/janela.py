@@ -136,29 +136,37 @@ class AbaPaciente(ttk.Frame):
 # --- Aba do painel ----------------------------------------------------------------
 
 class AbaPainel(ttk.Frame):
-    """Última senha chamada e espera estimada de cada especialidade."""
+    """Última chamada e situação completa da fila de cada especialidade."""
 
     def __init__(self, pai, sistema: Sistema):
         super().__init__(pai, padding=16)
         self._sistema = sistema
 
         estilo = ttk.Style(self)
-        estilo.configure("Painel.Treeview", font=FONTE_PAINEL, rowheight=48)
-        estilo.configure("Painel.Treeview.Heading", font=("Helvetica", 12, "bold"))
+        estilo.configure("Painel.Treeview", font=("Helvetica", 10), rowheight=42)
+        estilo.configure("Painel.Treeview.Heading", font=("Helvetica", 10, "bold"))
 
         ttk.Label(self, text="Painel de atendimento", font=FONTE_TITULO).pack(anchor="w")
         self.tabela = ttk.Treeview(
             self, style="Painel.Treeview", height=len(Especialidade), selectmode="none",
-            columns=("especialidade", "senha", "consultorio", "espera"), show="headings")
-        for coluna, titulo, largura in (("especialidade", "Especialidade", 220),
-                                        ("senha", "Senha", 100),
-                                        ("consultorio", "Consultório", 130),
-                                        ("espera", "Espera estimada", 200)):
+            columns=("especialidade", "senha", "categoria", "consultorio", "quantidade",
+                     "aguardando", "espera"), show="headings")
+        for coluna, titulo, largura in (("especialidade", "Especialidade", 145),
+                                        ("senha", "Última", 70),
+                                        ("categoria", "Categoria", 145),
+                                        ("consultorio", "Consultório", 80),
+                                        ("quantidade", "Aguardando", 80),
+                                        ("aguardando", "Senhas em espera", 220),
+                                        ("espera", "Espera", 100)):
             self.tabela.heading(coluna, text=titulo)
             self.tabela.column(coluna, width=largura, anchor="w" if coluna == "especialidade" else "center")
         self.tabela.pack(fill="both", expand=True, pady=12)
-        ttk.Label(self, text="A espera é uma estimativa, sem garantia de tempo.",
-                  font=FONTE_TEXTO).pack(anchor="w")
+        barra_horizontal = ttk.Scrollbar(self, orient="horizontal", command=self.tabela.xview)
+        self.tabela.configure(xscrollcommand=barra_horizontal.set)
+        barra_horizontal.pack(fill="x")
+        ttk.Label(self, text="As senhas em espera aparecem na ordem prevista de chamada. "
+                            "A espera é uma estimativa, sem garantia de tempo.",
+                  font=FONTE_TEXTO, wraplength=820, justify="left").pack(anchor="w")
 
     def atualizar(self) -> None:
         self.tabela.delete(*self.tabela.get_children())
@@ -166,7 +174,10 @@ class AbaPainel(ttk.Frame):
             self.tabela.insert("", "end", values=(
                 linha.especialidade.value,
                 linha.senha or "-",
+                linha.categoria or "-",
                 linha.consultorio or "-",
+                linha.quantidade_aguardando,
+                ", ".join(linha.senhas_aguardando) or "-",
                 formatar_espera(linha.espera_estimada_min)))
 
 

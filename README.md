@@ -40,6 +40,22 @@ Os códigos 1 a 6 representam as prioridades previstas no projeto. O código 2 (
 
 Todas as bibliotecas citadas fazem parte da biblioteca padrão do Python; o projeto não tem dependências externas.
 
+## Estruturas de dados
+
+- **Heap (`heapq`) para senhas prioritárias:** cada elemento é ordenado pelo código da prioridade (menor código primeiro) e, em caso de empate, pelo número da senha. Assim, a fila respeita a prioridade definida pelo grupo e mantém FIFO entre pessoas da mesma categoria.
+- **Fila FIFO (`deque`) para senhas normais:** novas senhas entram no fim e a próxima chamada sai do começo. Senhas normais só são chamadas quando não há prioridade aguardando.
+- **Uma fila por especialidade (`dict`):** o gerenciador localiza rapidamente a fila correspondente e não mistura pacientes de especialidades diferentes.
+- **Dicionário de atendimentos por consultório:** associa cada consultório à senha que está em atendimento, impedindo uma segunda chamada enquanto o atendimento anterior não for finalizado.
+- **SQLite para persistência:** as senhas, especialistas e dados de autenticação ficam armazenados para que o sistema possa ser reaberto durante o dia.
+
+### Numeração das senhas
+
+Cada especialidade tem um contador único compartilhado pelas categorias normal e prioritária. A letra identifica a categoria (`N` para normal e `P` para prioritária) e os três dígitos identificam a posição de emissão naquela especialidade. Por exemplo, uma senha normal `N001` seguida de uma prioritária pode resultar em `P002`. Essa escolha evita repetir números dentro da especialidade; por isso, a numeração não reinicia separadamente para cada categoria.
+
+### Ordem de chamada adotada
+
+As senhas prioritárias são chamadas pela ordem dos códigos de prioridade de 1 a 6 e, dentro da mesma categoria, por ordem de chegada. Senhas normais mantêm FIFO e aguardam enquanto houver alguma prioridade na fila. Essa prioridade estrita é a hipótese adotada pelo grupo e deve ser explicada na apresentação.
+
 ## Organização dos módulos
 
 O código fica no pacote `clinica/`, com uma pasta por módulo do enunciado. Cada pasta tem um `__init__.py` que indica o que os outros módulos podem usar, então quem importa não precisa saber em qual arquivo cada classe está. O `main.py` fica na raiz.
@@ -63,7 +79,7 @@ Clinica-SistemaSenhaPrioridade/
 | `clinica/modelos/` | Especialidades, prioridades, estados, senhas e especialistas (o `Especialista` é imutável: depois de cadastrado, não pode ser alterado por fora) | Implementado |
 | `clinica/especialistas/` | Cadastro de especialistas e autenticação do administrador | Implementado |
 | `clinica/filas/` | Emissão e chamada de senhas, fila FIFO para senhas normais, heap para prioritárias, encerramento diário e estimativas de espera | Implementado |
-| `clinica/painel/` | Última senha chamada, consultório e espera estimada por especialidade, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
+| `clinica/painel/` | Última senha chamada, categoria, consultório, quantidade e relação de senhas aguardando, além da espera estimada, em dados puros (`LinhaPainel`) e em texto para o terminal | Implementado |
 | `clinica/relatorio/` | Gravação das senhas, do cadastro e do administrador no SQLite (`Repositorio`) e relatório diário em texto (`Relatorio`), salvo em `relatorios/relatorio_AAAA-MM-DD.txt`; o mesmo módulo também gera as senhas do dia em CSV (`salvar_csv`) e em Excel (`salvar_excel`) | Implementado |
 | `clinica/sistema.py` | Porta de entrada única: abre o dia, restaura as filas do banco, controla o acesso do administrador, grava no SQLite, gera o relatório e exporta em CSV e Excel | Implementado |
 | `clinica/interface/` | Janela em Tkinter com quatro abas (`janela.py`) e menu de terminal (`terminal.py`, com consulta de relatórios por data); as duas só desenham e chamam o `Sistema` | Implementado |
@@ -92,7 +108,7 @@ python main.py              # janela (Tkinter)
 python main.py --terminal   # menu de terminal
 ```
 
-A janela tem quatro abas: retirar senha, painel de atendimento (atualiza sozinho a cada 2 segundos), especialista (escolhe o consultório, chama a próxima senha e finaliza o atendimento) e administrador. O terminal tem as mesmas quatro áreas em forma de menu. No primeiro acesso, o sistema pede para criar a conta do administrador; depois disso, o administrador cadastra os especialistas (no máximo três por especialidade), consulta o relatório e encerra o dia. No terminal, o administrador também pode consultar o relatório de qualquer data, informando AAAA-MM-DD, e exportar as senhas daquele dia em CSV ou Excel (`.xlsx`). Cadastro, relatório e encerramento exigem login de administrador.
+A janela tem quatro abas: retirar senha, painel de atendimento (atualiza sozinho a cada 2 segundos), especialista (escolhe o consultório, chama a próxima senha e finaliza o atendimento) e administrador. O painel mostra a categoria da última chamada e a quantidade e relação de senhas aguardando, na ordem prevista de chamada. O terminal tem as mesmas quatro áreas em forma de menu. No primeiro acesso, o sistema pede para criar a conta do administrador; depois disso, o administrador cadastra os especialistas (no máximo três por especialidade), consulta o relatório e encerra o dia. No terminal, o administrador também pode consultar o relatório de qualquer data, informando AAAA-MM-DD, e exportar as senhas daquele dia em CSV ou Excel (`.xlsx`). Cadastro, relatório e encerramento exigem login de administrador.
 
 O banco SQLite fica em `dados/clinica.db` e os relatórios em `relatorios/relatorio_AAAA-MM-DD.txt` (as exportações usam o mesmo nome, com `.csv` ou `.xlsx`); as duas pastas são criadas automaticamente e ficam fora do Git. Se o programa for fechado no meio do dia, as senhas voltam do banco ao reabrir. Se o dia anterior não foi encerrado, ele é fechado e o relatório é gerado ao iniciar; se a data mudar com o programa aberto, o dia anterior é encerrado e o novo começa sozinho.
 
@@ -109,6 +125,12 @@ Os testes automatizados rodam na raiz do projeto com `python -m unittest discove
 | `test_sistema.py` | Abertura do dia, restauração das filas, acesso do administrador e exportação de relatórios |
 | `test_terminal.py` e `test_janela.py` | Menus do terminal (incluindo consulta e exportação de relatórios) e abas da janela |
 | `test_dados_exemplo.py` | Script de dados de exemplo, inclusive o fim do modo administrador quando o cadastro falha no meio |
+
+## Demonstração visual
+
+As capturas de tela da janela devem ser inseridas nesta seção antes da entrega. Para obtê-las, execute `python -m clinica.dados_exemplo`, abra `python main.py` e capture as abas **Retirar senha**, **Painel** e **Especialista** com dados de exemplo visíveis. O painel exibe a última chamada, sua categoria, a quantidade de pacientes aguardando, a relação de senhas em espera e a estimativa de tempo.
+
+> A gravação do vídeo de apresentação (5 a 10 minutos), a confirmação de acesso do professor ao repositório e o envio individual pelo Blackboard são etapas externas ao código. O prazo informado pelo grupo é **26/11/2026**.
 
 ### Dados de exemplo
 
